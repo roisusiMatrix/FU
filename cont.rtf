@@ -5,9 +5,58 @@
 \paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 
-\f0\fs24 \cf0 <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">\
-<path d="M20.0269 17.9731C22.5388 17.9731 24.5752 15.9367 24.5752 13.4248C24.5752 10.9129 22.5388 8.87653 20.0269 8.87653C17.515 8.87653 15.4786 10.9129 15.4786 13.4248C15.4786 15.9367 17.515 17.9731 20.0269 17.9731Z" stroke="#FF6600" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>\
-<path d="M4.10809 8.87647H6.38222V6.60234C6.38222 5.39607 6.86141 4.2392 7.71438 3.38623C8.56734 2.53327 9.72421 2.05408 10.9305 2.05408H29.1235C30.3298 2.05408 31.4867 2.53327 32.3396 3.38623C33.1926 4.2392 33.6718 5.39607 33.6718 6.60234V29.3437C33.6718 30.5499 33.1926 31.7068 32.3396 32.5598C31.4867 33.4127 30.3298 33.8919 29.1235 33.8919H10.9305C9.72421 33.8919 8.56734 33.4127 7.71438 32.5598C6.86141 31.7068 6.38222 30.5499 6.38222 29.3437V27.0695H4.10809M4.10809 17.973H6.38222M4.10809 13.4247H6.38222M4.10809 22.5213H6.38222" stroke="#FF6600" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>\
-<path fill-rule="evenodd" clip-rule="evenodd" d="M26.8489 24.7953V22.5212C26.8489 21.3149 26.3697 20.158 25.5167 19.3051C24.6638 18.4521 23.5069 17.9729 22.3006 17.9729H17.7524C16.5461 17.9729 15.3892 18.4521 14.5363 19.3051C13.6833 20.158 13.2041 21.3149 13.2041 22.5212V24.7953C13.2041 25.3984 13.4437 25.9769 13.8702 26.4033C14.2967 26.8298 14.8751 27.0694 15.4782 27.0694H24.5748C25.1779 27.0694 25.7563 26.8298 26.1828 26.4033C26.6093 25.9769 26.8489 25.3984 26.8489 24.7953Z" stroke="#FF6600" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>\
-</svg>\
+\f0\fs24 \cf0 #!/usr/bin/env node\
+\
+const fs = require('fs');\
+const path = require('path');\
+const https = require('https');\
+\
+const CONFIG_FILES = [\
+  '.prettierrc',\
+  'eslint.config.mjs',\
+  '.gitignore',\
+  'tsconfig.base.json'\
+];\
+\
+const TEMPLATE_DIR = 'https://raw.githubusercontent.com/your-org/mfe-configs/main/template/';\
+\
+const downloadFile = (url, dest) => \{\
+  return new Promise((resolve, reject) => \{\
+    const file = fs.createWriteStream(dest);\
+    https.get(url, (response) => \{\
+      response.pipe(file);\
+      file.on('finish', () => \{\
+        file.close(resolve);\
+      \});\
+    \}).on('error', (err) => \{\
+      fs.unlink(dest, () => reject(err));\
+    \});\
+  \});\
+\};\
+\
+const setupMfe = async () => \{\
+  console.log('Setting up MFE configuration...');\
+  const rootDir = process.cwd();\
+\
+  for (const file of CONFIG_FILES) \{\
+    const filePath = path.join(rootDir, file);\
+    const fileUrl = `$\{TEMPLATE_DIR\}$\{file\}`;\
+    console.log(`Downloading $\{file\}...`);\
+    await downloadFile(fileUrl, filePath);\
+  \}\
+\
+  console.log('Configuration files added!');\
+\};\
+\
+setupMfe().catch((err) => \{\
+  console.error(`Error setting up MFE: $\{err.message\}`);\
+  process.exit(1);\
+\});\
+\
+\
+\
+\
+\
+\
+\
 }
